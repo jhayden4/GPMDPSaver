@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GPMDPSaver.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,12 @@ namespace GPMDPSaver
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            MainViewModel mvm = new MainViewModel();
+            this.DataContext = mvm;
         }
     }
 }
