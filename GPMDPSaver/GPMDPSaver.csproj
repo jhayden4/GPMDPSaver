@@ -91,6 +91,7 @@
     <Compile Include="Models\SongActions.cs" />
     <Compile Include="Models\SongInfo.cs" />
     <Compile Include="SongActionEventArgs.cs" />
+    <Compile Include="SongRecorder.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="WebSocketSongReader.cs" />
     <Page Include="MainWindow.xaml">

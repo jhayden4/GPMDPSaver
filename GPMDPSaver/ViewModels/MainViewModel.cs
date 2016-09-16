@@ -10,9 +10,9 @@ namespace GPMDPSaver.ViewModels
 {
     public class MainViewModel : BindableBase
     {
-        private ObservableCollection<string> log;
-        private string previousInfo;
+        private ObservableCollection<string> log;  
         private WebSocketSongReader songReader;
+        private SongRecorder songRecorder;
 
         private ICommand startStopCommand;
 
@@ -23,6 +23,7 @@ namespace GPMDPSaver.ViewModels
             this.CurrentSong = this.songReader.CurrentSong;
             this.Log = new ObservableCollection<string>();
             this.StartStopText = "Start";
+            this.songRecorder = new SongRecorder(@"C:\Test");
         }
 
         public SongInfo CurrentSong
@@ -80,10 +81,12 @@ namespace GPMDPSaver.ViewModels
                    {
                        if (e.Action == SongAction.Start)
                        {
+                           this.songRecorder.StartSongRecording(e.SongInfo);
                            log.Add(e.SongInfo.Artist + " - " + e.SongInfo.Title + " Started");
                        }
                        else if (e.Action == SongAction.Finish)
                        {
+                           this.songRecorder.FinishSongRecording(e.SongInfo);
                            log.Add(e.SongInfo.Artist + " - " + e.SongInfo.Title + " Finished");
                        }
                    }));

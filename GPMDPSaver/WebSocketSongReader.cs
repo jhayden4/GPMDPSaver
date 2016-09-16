@@ -13,11 +13,7 @@ namespace GPMDPSaver
 
         public WebSocketSongReader()
         {
-            this.CurrentSong = new SongInfo()
-            {
-                Artist = "(None)",
-                Title = "(None)"
-            };
+            this.CurrentSong = new SongInfo();           
         }
 
         public delegate void SongActionHandler(object sender, SongActionEventArgs e);
@@ -56,7 +52,7 @@ namespace GPMDPSaver
             this.Reading = true;
         }
 
-        public async void StopReading()
+        public void StopReading()
         {
             this.webSocket.OnMessage -= WebSocket_OnMessage;
             this.webSocket.Close();
@@ -88,9 +84,15 @@ namespace GPMDPSaver
             string artist = (string)payload["artist"];
             string title = (string)payload["title"];
 
+            if (!string.IsNullOrWhiteSpace(this.CurrentSong.Artist) && !string.IsNullOrWhiteSpace(this.CurrentSong.Title))
+            {
+                this.OnSongAction(new SongInfo() { Artist = this.CurrentSong.Artist, Title = this.CurrentSong.Title }, Models.SongAction.Finish);
+            }
 
-            this.OnSongAction(new SongInfo() { Artist = this.CurrentSong.Artist, Title = this.CurrentSong.Title }, Models.SongAction.Finish);
-            this.OnSongAction(new SongInfo() { Artist = artist, Title = title }, Models.SongAction.Start);
+            if (!string.IsNullOrWhiteSpace(artist) && !string.IsNullOrWhiteSpace(title))
+            {
+                this.OnSongAction(new SongInfo() { Artist = artist, Title = title }, Models.SongAction.Start);
+            }
 
 
             this.CurrentSong.Artist = artist;
