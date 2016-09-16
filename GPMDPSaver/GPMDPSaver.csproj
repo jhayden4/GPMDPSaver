@@ -74,6 +74,10 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+      <HintPath>..\packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -84,8 +88,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="JsonSongReader.cs" />
+    <Compile Include="Models\SongActions.cs" />
     <Compile Include="Models\SongInfo.cs" />
+    <Compile Include="SongActionEventArgs.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="WebSocketSongReader.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

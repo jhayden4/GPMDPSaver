@@ -1,6 +1,8 @@
 ﻿using GPMDPSaver.Models;
 using Prism.Commands;
 using Prism.Mvvm;
+using System;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 
@@ -8,31 +10,37 @@ namespace GPMDPSaver.ViewModels
 {
     public class MainViewModel : BindableBase
     {
-        private JsonSongReader songReader;
+        private ObservableCollection<string> log;
+        private string previousInfo;
+        private WebSocketSongReader songReader;
 
         private ICommand startStopCommand;
 
         public MainViewModel()
         {
-            this.songReader = new JsonSongReader();
-            this.songReader.SongFinished += SongReader_SongFinished;
+            this.songReader = new WebSocketSongReader();
+            this.songReader.SongAction += SongReader_SongAction;
             this.CurrentSong = this.songReader.CurrentSong;
-        }
-
-        private string previousInfo;
-
-        private void SongReader_SongFinished(object sender, SongFinishedEventArgs e)
-        {
-            if(e.SongInfo != null)
-            {
-                this.PreviousInfo = e.SongInfo.Artist + " - " + e.SongInfo.Title;
-            }
+            this.Log = new ObservableCollection<string>();
         }
 
         public SongInfo CurrentSong
         {
             get;
             set;
+        }
+
+        public ObservableCollection<string> Log
+        {
+            get
+            {
+                return log;
+            }
+
+            set
+            {
+                log = value;
+            }
         }
 
         public ICommand StartStopCommand
@@ -45,19 +53,6 @@ namespace GPMDPSaver.ViewModels
                 }
                 return startStopCommand;
             }
-        }
-
-        private void ToggleReading()
-        {
-            if(this.songReader.Reading)
-            {
-                this.songReader.StopReading();
-            }
-            else
-            {
-                this.songReader.StartReading();
-            }
-            this.OnPropertyChanged(nameof(this.StartStopText));
         }
 
         public string StartStopText
@@ -75,18 +70,38 @@ namespace GPMDPSaver.ViewModels
             }
         }
 
-        public string PreviousInfo
+        private void SongReader_SongAction(object sender, SongActionEventArgs e)
         {
-            get
+            if (e.SongInfo != null)
             {
-                return previousInfo;
-            }
+                Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
+                    new Action(() =>
+                   {
+                       if (e.Action == SongAction.Start)
+                       {
+                           log.Add(e.SongInfo.Artist + " - " + e.SongInfo.Title + " Started");
+                       }
+                       else if (e.Action == SongAction.Finish)
+                       {
+                           log.Add(e.SongInfo.Artist + " - " + e.SongInfo.Title + " Finished");
+                       }
+                   }));
 
-            set
-            {
-                previousInfo = value;
-                this.OnPropertyChanged(nameof(this.PreviousInfo));
+
             }
+        }
+
+        private void ToggleReading()
+        {
+            if (this.songReader.Reading)
+            {
+                this.songReader.StopReading();
+            }
+            else
+            {
+                this.songReader.StartReading();
+            }
+            this.OnPropertyChanged(nameof(this.StartStopText));
         }
     }
 }

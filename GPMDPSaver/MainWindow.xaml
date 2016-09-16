@@ -21,14 +21,13 @@
 
         <Label Grid.Row="0" Grid.Column="0" Content="Title:" />
         <Label Grid.Row="1" Grid.Column="0" Content="Artist:" />
-        <Label Grid.Row="2" Grid.Column="0" Content="Time:" />
-        <Label Grid.Row="3" Grid.Column="0" Content="Previous:" />
+        <Label Grid.Row="2" Grid.Column="0" Content="Time:" />     
 
         <Label Grid.Row="0" Grid.Column="1" Content="{Binding CurrentSong.Title}" />
         <Label Grid.Row="1" Grid.Column="1" Content="{Binding CurrentSong.Artist}" />
-        <Label Grid.Row="2" Grid.Column="1" Content="{Binding CurrentSong.TimeDisplay}" />
-        <Label Grid.Row="3" Grid.Column="1" Content="{Binding PreviousInfo}" />
+        <Label Grid.Row="2" Grid.Column="1" Content="{Binding CurrentSong.TimeDisplay}" />    
 
-        <Button Grid.Row="4" Content="{Binding StartStopText}" Command="{Binding StartStopCommand}" />
+        <Button Grid.Row="3" Height="25" VerticalAlignment="Top" Content="{Binding StartStopText}" Command="{Binding StartStopCommand}" />
+        <ListBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding Log}" Width="450" Height="220" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" />
     </Grid>
 </Window>

@@ -16,9 +16,9 @@ namespace GPMDPSaver
         private static string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Google Play Music Desktop Player\json_store\playback.json");
         private FileSystemWatcher fileWatcher;
 
-        public event SongFinishedHandler SongFinished;
+        public event SongActionHandler SongAction;
 
-        public delegate void SongFinishedHandler(object sender, SongFinishedEventArgs e);
+        public delegate void SongActionHandler(object sender, SongActionEventArgs e);
 
 
         public JsonSongReader()
@@ -70,30 +70,49 @@ namespace GPMDPSaver
 
                 if (obj != null)
                 {
-                    this.CurrentSong.Artist = (string)obj["song"]["artist"];
-                    this.CurrentSong.Title = (string)obj["song"]["title"];
-                    this.CurrentSong.CurrentTime = new TimeSpan(0, 0, 0, 0, (int)obj["time"]["current"]);
-                    this.CurrentSong.TotalTime = new TimeSpan(0, 0, 0, 0, (int)obj["time"]["total"]);
+                    //// Make sure the song is playing
+                    //if ((bool)obj["playing"])
+                    //{
+                        string artist = (string)obj["song"]["artist"];
+                        string title = (string)obj["song"]["title"];
+                        int currentTime = (int)obj["time"]["current"];
+                        int totalTime = (int)obj["time"]["total"];                      
 
-                    if(this.CurrentSong.CurrentTime == this.CurrentSong.TotalTime)
-                    {
-                        SongInfo finishedSong = new SongInfo()
+                        if(currentTime == 0 && artist != this.CurrentSong.Artist && title != this.CurrentSong.Title)
                         {
-                            Artist = this.CurrentSong.Artist,
-                            Title = this.CurrentSong.Title
-                        };
+                            SongInfo startedSong = new SongInfo()
+                            {
+                                Artist = artist,
+                                Title = title
+                            };
 
-                        this.OnSongFinished(finishedSong);
-                    }
+                            this.OnSongAction(startedSong, GPMDPSaver.Models.SongAction.Start);
+                        }
+                        else if (currentTime == totalTime)
+                        {
+                            SongInfo finishedSong = new SongInfo()
+                            {
+                                Artist = artist,
+                                Title = title
+                            };
+
+                            this.OnSongAction(finishedSong, GPMDPSaver.Models.SongAction.Finish);
+                        }
+
+                        this.CurrentSong.Artist = artist;
+                        this.CurrentSong.Title = title;
+                      this.CurrentSong.CurrentTime = new TimeSpan(0, 0, 0, 0, currentTime);
+                        this.CurrentSong.TotalTime = new TimeSpan(0, 0, 0, 0,totalTime);
+                    //}
                 }
             }
         }
 
-        protected virtual void OnSongFinished(SongInfo songInfo)
+        protected virtual void OnSongAction(SongInfo songInfo, SongAction action)
         {
-            if(this.SongFinished != null)
+            if(this.SongAction != null)
             {
-                this.SongFinished.Invoke(this, new SongFinishedEventArgs() { SongInfo = songInfo });
+                this.SongAction.Invoke(this, new SongActionEventArgs() { SongInfo = songInfo, Action = action });
             }
         }
 
@@ -129,12 +148,7 @@ namespace GPMDPSaver
         }
     }
 
-    public class SongFinishedEventArgs : EventArgs
-    {
-        public SongInfo SongInfo
-        {
-            get;
-            set;
-        }
-    }
+    
+
+    
 }
