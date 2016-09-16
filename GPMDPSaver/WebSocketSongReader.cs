@@ -7,13 +7,8 @@ namespace GPMDPSaver
 {
     public class WebSocketSongReader : IDisposable
     {
-        private bool reading;
         private bool playing;
-
-        public delegate void SongActionHandler(object sender, SongActionEventArgs e);
-
-        public event SongActionHandler SongAction;
-
+        private bool reading;
         private WebSocket webSocket;
 
         public WebSocketSongReader()
@@ -24,6 +19,10 @@ namespace GPMDPSaver
                 Title = "(None)"
             };
         }
+
+        public delegate void SongActionHandler(object sender, SongActionEventArgs e);
+
+        public event SongActionHandler SongAction;
 
         public SongInfo CurrentSong
         {
@@ -44,6 +43,11 @@ namespace GPMDPSaver
             }
         }
 
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
         public void StartReading()
         {
             this.Reading = true;
@@ -52,35 +56,25 @@ namespace GPMDPSaver
             this.webSocket.ConnectAsync();
         }
 
-        private void WebSocket_OnMessage(object sender, MessageEventArgs e)
+        public void StopReading()
         {
-            JObject obj = null;
+            this.Reading = false;
+            this.webSocket.OnMessage -= WebSocket_OnMessage;
+            this.webSocket.Close();
+            this.webSocket = null;
+        }
 
-            try
+        protected virtual void OnSongAction(SongInfo songInfo, SongAction action)
+        {
+            if (this.SongAction != null)
             {
-                obj = JObject.Parse(e.Data);
+                this.SongAction.Invoke(this, new SongActionEventArgs() { SongInfo = songInfo, Action = action });
             }
-            catch (Exception ex)
-            {
-                // There was an error parsing the file so just continue on;
-                // TODO: Add logging
-            }
+        }
 
-            string channel = (string)obj["channel"];
-            JToken payload = obj["payload"];
-
-            switch (channel)
-            {
-                case "playState":
-                    this.playing = (bool)payload;
-                    break;
-                case "track":
-                    this.ProcessTrackMessage(payload);
-                    break;
-                case "time":
-                    this.ProcessTimeMessage(payload);
-                    break;
-            }
+        private void PlayStateMessage(JToken payload)
+        {
+            this.playing = (bool)payload;
         }
 
         private void ProcessTimeMessage(JToken payload)
@@ -104,25 +98,37 @@ namespace GPMDPSaver
             this.CurrentSong.Title = title;
         }
 
-        public void StopReading()
+        private void WebSocket_OnMessage(object sender, MessageEventArgs e)
         {
-            this.Reading = false;
-            this.webSocket.OnMessage -= WebSocket_OnMessage;
-            this.webSocket.Close();
-            this.webSocket = null;
-        }
+            JObject obj = null;
 
-        protected virtual void OnSongAction(SongInfo songInfo, SongAction action)
-        {
-            if (this.SongAction != null)
+            try
             {
-                this.SongAction.Invoke(this, new SongActionEventArgs() { SongInfo = songInfo, Action = action });
+                obj = JObject.Parse(e.Data);
             }
-        }
+            catch (Exception ex)
+            {
+                // There was an error parsing the file so just continue on;
+                // TODO: Add logging
+            }
 
-        public void Dispose()
-        {
-            throw new NotImplementedException();
+            string channel = (string)obj["channel"];
+            JToken payload = obj["payload"];
+
+            switch (channel)
+            {
+                case "playState":
+                    this.PlayStateMessage(payload);
+                    break;
+
+                case "track":
+                    this.ProcessTrackMessage(payload);
+                    break;
+
+                case "time":
+                    this.ProcessTimeMessage(payload);
+                    break;
+            }
         }
     }
 }
