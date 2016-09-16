@@ -50,18 +50,18 @@ namespace GPMDPSaver
 
         public void StartReading()
         {
-            this.Reading = true;
             this.webSocket = new WebSocket("ws://localhost:5672");
             this.webSocket.OnMessage += WebSocket_OnMessage;
-            this.webSocket.ConnectAsync();
+            this.webSocket.Connect();
+            this.Reading = true;
         }
 
-        public void StopReading()
+        public async void StopReading()
         {
-            this.Reading = false;
             this.webSocket.OnMessage -= WebSocket_OnMessage;
             this.webSocket.Close();
             this.webSocket = null;
+            this.Reading = false;
         }
 
         protected virtual void OnSongAction(SongInfo songInfo, SongAction action)
@@ -88,11 +88,10 @@ namespace GPMDPSaver
             string artist = (string)payload["artist"];
             string title = (string)payload["title"];
 
-            if (this.playing)
-            {
-                this.OnSongAction(new SongInfo() { Artist = this.CurrentSong.Artist, Title = this.CurrentSong.Title }, Models.SongAction.Finish);
-                this.OnSongAction(new SongInfo() { Artist = artist, Title = title }, Models.SongAction.Start);
-            }
+
+            this.OnSongAction(new SongInfo() { Artist = this.CurrentSong.Artist, Title = this.CurrentSong.Title }, Models.SongAction.Finish);
+            this.OnSongAction(new SongInfo() { Artist = artist, Title = title }, Models.SongAction.Start);
+
 
             this.CurrentSong.Artist = artist;
             this.CurrentSong.Title = title;

@@ -22,6 +22,7 @@ namespace GPMDPSaver.ViewModels
             this.songReader.SongAction += SongReader_SongAction;
             this.CurrentSong = this.songReader.CurrentSong;
             this.Log = new ObservableCollection<string>();
+            this.StartStopText = "Start";
         }
 
         public SongInfo CurrentSong
@@ -55,18 +56,18 @@ namespace GPMDPSaver.ViewModels
             }
         }
 
+        private string startStopText;
+
         public string StartStopText
         {
             get
             {
-                if (this.songReader.Reading)
-                {
-                    return "Stop";
-                }
-                else
-                {
-                    return "Start";
-                }
+                return this.startStopText;
+            }
+            set
+            {
+                this.startStopText = value;
+                this.OnPropertyChanged(nameof(this.StartStopText));
             }
         }
 
@@ -95,13 +96,17 @@ namespace GPMDPSaver.ViewModels
         {
             if (this.songReader.Reading)
             {
+                this.StartStopText = "Stopping...";
                 this.songReader.StopReading();
+                this.StartStopText = "Start";
             }
             else
             {
+                this.StartStopText = "Starting...";
                 this.songReader.StartReading();
+                this.StartStopText = "Stop";
             }
-            this.OnPropertyChanged(nameof(this.StartStopText));
+           
         }
     }
 }
