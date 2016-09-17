@@ -2,6 +2,7 @@
 using NAudio.Wave;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -99,7 +100,10 @@ namespace GPMDPSaver
 
         private string GenerateWavFileName(string artist, string title)
         {
-            return Path.Combine(this.directory, artist + " - " + title + ".wav");
+            // Make sure to clean the artist and title for invalid file characters
+            string fileName = Path.GetInvalidFileNameChars().Aggregate(artist + " - " + title, (current, c) => current.Replace(c.ToString(), string.Empty)) + ".wav";
+
+            return  Path.Combine(this.directory, fileName);           
         }
 
         private void Recorder_DataAvailable(object sender, WaveInEventArgs e)

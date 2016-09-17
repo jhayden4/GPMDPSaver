@@ -70,7 +70,20 @@ namespace GPMDPSaver
 
         private void PlayStateMessage(JToken payload)
         {
+
+            // Fire off a final song change if we are no longer playing and we are near the end of the current song
+            // This is for when the end of a playlist is reached and the song stops playing
             this.playing = (bool)payload;
+
+            if(!this.playing && this.CurrentSong.CurrentTime.HasValue && this.CurrentSong.TotalTime.HasValue)
+            {
+                double secondsFromEnd = (this.CurrentSong.TotalTime.Value - this.CurrentSong.CurrentTime.Value).TotalSeconds;
+
+                if(secondsFromEnd < 2.0)
+                {
+                    this.OnSongChange(new SongInfo() { Artist = this.CurrentSong.Artist, Title = this.CurrentSong.Title }, null);
+                }
+            }
         }
 
         private void ProcessTimeMessage(JToken payload)
