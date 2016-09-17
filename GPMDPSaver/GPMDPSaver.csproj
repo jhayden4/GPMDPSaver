@@ -51,6 +51,10 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Ookii.Dialogs.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0c15020868fd6249, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ookii.Dialogs.1.0\lib\net35\Ookii.Dialogs.Wpf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Prism, Version=6.2.0.0, Culture=neutral, PublicKeyToken=91a96d2a154366d8, processorArchitecture=MSIL">
       <HintPath>..\packages\Prism.Core.6.2.0\lib\net45\Prism.dll</HintPath>
       <Private>True</Private>
@@ -87,10 +91,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="JsonSongReader.cs" />
     <Compile Include="Models\SongActions.cs" />
     <Compile Include="Models\SongInfo.cs" />
-    <Compile Include="SongActionEventArgs.cs" />
+    <Compile Include="Mp3Codec.cs" />
+    <Compile Include="SongChangeEventArgs.cs" />
     <Compile Include="SongRecorder.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="WebSocketSongReader.cs" />

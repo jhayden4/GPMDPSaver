@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace GPMDPSaver
 {
-    public class SongActionEventArgs : EventArgs
+    public class SongChangeEventArgs : EventArgs
     {
-        public SongInfo SongInfo
+        public SongInfo OldSongInfo
         {
             get;
             set;
         }
 
-        public SongAction Action
+        public SongInfo NewSongInfo
         {
             get;
             set;

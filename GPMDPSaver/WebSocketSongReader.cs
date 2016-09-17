@@ -13,12 +13,12 @@ namespace GPMDPSaver
 
         public WebSocketSongReader()
         {
-            this.CurrentSong = new SongInfo();           
+            this.CurrentSong = new SongInfo();
         }
 
-        public delegate void SongActionHandler(object sender, SongActionEventArgs e);
+        public delegate void SongChangeHandler(object sender, SongChangeEventArgs e);
 
-        public event SongActionHandler SongAction;
+        public event SongChangeHandler SongChange;
 
         public SongInfo CurrentSong
         {
@@ -60,11 +60,11 @@ namespace GPMDPSaver
             this.Reading = false;
         }
 
-        protected virtual void OnSongAction(SongInfo songInfo, SongAction action)
+        protected virtual void OnSongChange(SongInfo oldSongInfo, SongInfo newSongInfo)
         {
-            if (this.SongAction != null)
+            if (this.SongChange != null)
             {
-                this.SongAction.Invoke(this, new SongActionEventArgs() { SongInfo = songInfo, Action = action });
+                this.SongChange.Invoke(this, new SongChangeEventArgs() { OldSongInfo = oldSongInfo, NewSongInfo = newSongInfo });
             }
         }
 
@@ -84,15 +84,22 @@ namespace GPMDPSaver
             string artist = (string)payload["artist"];
             string title = (string)payload["title"];
 
-            if (!string.IsNullOrWhiteSpace(this.CurrentSong.Artist) && !string.IsNullOrWhiteSpace(this.CurrentSong.Title))
-            {
-                this.OnSongAction(new SongInfo() { Artist = this.CurrentSong.Artist, Title = this.CurrentSong.Title }, Models.SongAction.Finish);
-            }
 
-            if (!string.IsNullOrWhiteSpace(artist) && !string.IsNullOrWhiteSpace(title))
+            SongInfo oldSongInfo = new SongInfo()
             {
-                this.OnSongAction(new SongInfo() { Artist = artist, Title = title }, Models.SongAction.Start);
-            }
+                Artist = this.CurrentSong.Artist,
+                Title = this.CurrentSong.Title
+            };
+
+            SongInfo newSongInfo = new SongInfo()
+            {
+                Artist = artist,
+                Title = title
+            };
+
+
+            this.OnSongChange(oldSongInfo, newSongInfo);
+
 
 
             this.CurrentSong.Artist = artist;
