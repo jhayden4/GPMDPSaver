@@ -84,7 +84,7 @@ namespace GPMDPSaver.ViewModels
                            this.AddLogText(e.OldSongInfo.Artist + " - " + e.OldSongInfo.Title + " Finished");
                        }
 
-                       if (e.NewSongInfo != null)
+                       if (e.NewSongInfo != null && !string.IsNullOrWhiteSpace(e.NewSongInfo.Artist) && !string.IsNullOrWhiteSpace(e.NewSongInfo.Title))
                        {
                            this.songRecorder.StartSongRecording(e.NewSongInfo);
                            this.AddLogText(e.NewSongInfo.Artist + " - " + e.NewSongInfo.Title + " Started");
