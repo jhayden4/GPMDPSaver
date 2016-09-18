@@ -18,10 +18,23 @@ namespace GPMDPSaver
 
         public SongRecorder(string directory)
         {
-            this.directory = directory;
+            this.Directory = directory;
             this.recorder = new WasapiLoopbackCapture();
             this.recorder.DataAvailable += Recorder_DataAvailable;
             this.recorder.RecordingStopped += Recorder_RecordingStopped;
+        }
+
+        public string Directory
+        {
+            get
+            {
+                return directory;
+            }
+
+            set
+            {
+                directory = value;
+            }
         }
 
         public void CancelRecording()
@@ -63,6 +76,12 @@ namespace GPMDPSaver
         {
             Task.Run(() =>
            {
+
+               if(!System.IO.Directory.Exists(this.directory))
+               {
+                   System.IO.Directory.CreateDirectory(this.directory);
+               }
+
                string fileName = this.GenerateWavFileName(song.Artist, song.Title);
 
                this.fileWriter = new WaveFileWriter(fileName, this.recorder.WaveFormat);
@@ -103,7 +122,7 @@ namespace GPMDPSaver
             // Make sure to clean the artist and title for invalid file characters
             string fileName = Path.GetInvalidFileNameChars().Aggregate(artist + " - " + title, (current, c) => current.Replace(c.ToString(), string.Empty)) + ".wav";
 
-            return  Path.Combine(this.directory, fileName);           
+            return Path.Combine(this.Directory, fileName);
         }
 
         private void Recorder_DataAvailable(object sender, WaveInEventArgs e)

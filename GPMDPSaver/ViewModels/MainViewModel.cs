@@ -13,17 +13,20 @@ namespace GPMDPSaver.ViewModels
         private ObservableCollection<string> log;  
         private WebSocketSongReader songReader;
         private SongRecorder songRecorder;
+        private string directory;
+        private bool running;
 
         private ICommand startStopCommand;
 
         public MainViewModel()
         {
+            this.Directory = Properties.Settings.Default.Directory;
             this.songReader = new WebSocketSongReader();
             this.songReader.SongChange += SongReader_SongChange;
             this.CurrentSong = this.songReader.CurrentSong;
             this.Log = new ObservableCollection<string>();
             this.StartStopText = "Start";
-            this.songRecorder = new SongRecorder(@"C:\Test");
+            this.songRecorder = new SongRecorder(this.Directory);
         }
 
         public SongInfo CurrentSong
@@ -72,6 +75,40 @@ namespace GPMDPSaver.ViewModels
             }
         }
 
+        public string Directory
+        {
+            get
+            {
+                return directory;
+            }
+
+            set
+            {
+                directory = value;
+                if (this.songRecorder != null)
+                {
+                    this.songRecorder.Directory = directory;
+                }
+                Properties.Settings.Default.Directory = directory;
+                Properties.Settings.Default.Save();
+                this.OnPropertyChanged(nameof(this.Directory));
+            }
+        }
+
+        public bool Running
+        {
+            get
+            {
+                return running;
+            }
+
+            set
+            {
+                running = value;
+                this.OnPropertyChanged(nameof(this.Running));
+            }
+        }
+
         private void SongReader_SongChange(object sender, SongChangeEventArgs e)
         {
            
@@ -104,12 +141,14 @@ namespace GPMDPSaver.ViewModels
                 this.songReader.StopReading();
                 this.songRecorder.FinishSongRecording();
                 this.StartStopText = "Start";
+                this.Running = false;
             }
             else
             {
                 this.StartStopText = "Starting...";
                 this.songReader.StartReading();
                 this.StartStopText = "Stop";
+                this.Running = true;
             }
            
         }

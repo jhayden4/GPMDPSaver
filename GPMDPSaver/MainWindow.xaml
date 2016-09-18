@@ -12,21 +12,25 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="60" />
+            <ColumnDefinition Width="75" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" Content="Title:" Margin="5" />
-        <Label Grid.Row="1" Grid.Column="0" Content="Artist:" Margin="5" />
-        <Label Grid.Row="2" Grid.Column="0" Content="Time:" Margin="5" />     
+        <Label Grid.Row="0" Grid.Column="0" Content="Directory:" Margin="5" />
+        <Label Grid.Row="1" Grid.Column="0" Content="Title:" Margin="5" />
+        <Label Grid.Row="2" Grid.Column="0" Content="Artist:" Margin="5" />
+        <Label Grid.Row="3" Grid.Column="0" Content="Time:" Margin="5" />
 
-        <Label Grid.Row="0" Grid.Column="1" Content="{Binding CurrentSong.Title}" Margin="5" />
-        <Label Grid.Row="1" Grid.Column="1" Content="{Binding CurrentSong.Artist}" Margin="5" />
-        <Label Grid.Row="2" Grid.Column="1" Content="{Binding CurrentSong.TimeDisplay}" Margin="5" />    
+        <TextBox Grid.Row="0" Grid.Column="1" Width="450" Text="{Binding Directory}" IsReadOnly="{Binding Running}" IsEnabled="" />
 
-        <Button Grid.Row="3" Height="25" VerticalAlignment="Top" Content="{Binding StartStopText}" Command="{Binding StartStopCommand}" Margin="5" />
-        <ListBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding Log}" Width="450" Height="220" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="5" />
+        <Label Grid.Row="1" Grid.Column="1" Content="{Binding CurrentSong.Title}" Margin="5" />
+        <Label Grid.Row="2" Grid.Column="1" Content="{Binding CurrentSong.Artist}" Margin="5" />
+        <Label Grid.Row="3" Grid.Column="1" Content="{Binding CurrentSong.TimeDisplay}" Margin="5" />
+
+        <Button Grid.Row="4" Height="25" VerticalAlignment="Top" Content="{Binding StartStopText}" Command="{Binding StartStopCommand}" Margin="5" />
+        <ListBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding Log}" Width="450" Height="220" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="5" />
     </Grid>
 </Window>
