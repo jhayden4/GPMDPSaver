@@ -1,6 +1,7 @@
 ﻿using GPMDPSaver.Models;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using WebSocketSharp;
 
 namespace GPMDPSaver
@@ -134,7 +135,7 @@ namespace GPMDPSaver
             }
 
             string channel = (string)obj["channel"];
-            JToken payload = obj["payload"];
+            JToken payload = obj["payload"];                       
 
             switch (channel)
             {

@@ -24,7 +24,7 @@
         <Label Grid.Row="2" Grid.Column="0" Content="Artist:" Margin="5" />
         <Label Grid.Row="3" Grid.Column="0" Content="Time:" Margin="5" />
 
-        <TextBox Grid.Row="0" Grid.Column="1" Width="450" Text="{Binding Directory}" IsReadOnly="{Binding Running}" IsEnabled="" />
+        <TextBox Grid.Row="0" Grid.Column="1" Width="450" Text="{Binding Directory}" IsReadOnly="{Binding Running}" />
 
         <Label Grid.Row="1" Grid.Column="1" Content="{Binding CurrentSong.Title}" Margin="5" />
         <Label Grid.Row="2" Grid.Column="1" Content="{Binding CurrentSong.Artist}" Margin="5" />

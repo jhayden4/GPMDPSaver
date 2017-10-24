@@ -1,4 +1,5 @@
 ﻿using GPMDPSaver.Models;
+using NLog;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
@@ -15,11 +16,13 @@ namespace GPMDPSaver.ViewModels
         private SongRecorder songRecorder;
         private string directory;
         private bool running;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         private ICommand startStopCommand;
 
         public MainViewModel()
         {
+            logger.Debug("Program started");
             this.Directory = Properties.Settings.Default.Directory;
             this.songReader = new WebSocketSongReader();
             this.songReader.SongChange += SongReader_SongChange;

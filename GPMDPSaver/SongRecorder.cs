@@ -1,5 +1,6 @@
 ﻿using GPMDPSaver.Models;
 using NAudio.Wave;
+using NLog;
 using System;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace GPMDPSaver
         private WaveFileWriter fileWriter;
         private WasapiLoopbackCapture recorder;
         private bool recording;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         public SongRecorder(string directory)
         {
@@ -59,31 +61,39 @@ namespace GPMDPSaver
 
         public void FinishSongRecording()
         {
+            logger.Debug("FinishSongRecording called");
+
             if (this.currentSong != null)
             {
+                logger.Debug("record.StopRecording() called");
                 this.recorder.StopRecording();
 
+                logger.Debug("fileWriter.Close() called");
                 this.fileWriter.Close();
                 this.fileWriter = null;
 
+                logger.Debug("ConvertToMp3() called");
                 this.ConvertToMp3(this.currentSong.Artist, this.currentSong.Title);
 
                 this.currentSong = null;
             }
+            logger.Debug("FinishSongRecording finished");
         }
 
         public void StartSongRecording(SongInfo song)
         {
             Task.Run(() =>
            {
-
-               if(!System.IO.Directory.Exists(this.directory))
+               logger.Debug("StartSongRecording() called");
+               if (!System.IO.Directory.Exists(this.directory))
                {
                    System.IO.Directory.CreateDirectory(this.directory);
                }
 
+               logger.Debug("Generating wav file name");
                string fileName = this.GenerateWavFileName(song.Artist, song.Title);
 
+               logger.Debug("Create file wrtier");
                this.fileWriter = new WaveFileWriter(fileName, this.recorder.WaveFormat);
 
                this.currentSong = new SongInfo()
@@ -94,13 +104,17 @@ namespace GPMDPSaver
 
                // Wait until the previous recording has finished before starting the next one
 
+               logger.Debug("Waiting until the previous recording has finished");
+
                while (recording)
                {
                    Thread.Sleep(10);
                }
 
+               logger.Debug("Calling StartRecording()");
                this.recorder.StartRecording();
                this.recording = true;
+               logger.Debug("Recording started");
            });
         }
 
@@ -110,10 +124,15 @@ namespace GPMDPSaver
             {
                 string wavFile = this.GenerateWavFileName(artist, title);
 
+                logger.Debug("Converting wav to mp3");
                 Mp3Codec.WaveToMp3(wavFile, artist, title);
+
+                logger.Debug("Deleting wav file");
 
                 // Delete the wav file after doing the conversion
                 File.Delete(wavFile);
+
+                logger.Debug("Wav file deleted");
             });
         }
 
@@ -135,6 +154,7 @@ namespace GPMDPSaver
 
         private void Recorder_RecordingStopped(object sender, StoppedEventArgs e)
         {
+            logger.Debug("Recorder_RecordingStopped() called");
             this.recording = false;
         }
     }
