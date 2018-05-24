@@ -11,7 +11,7 @@ namespace GPMDPSaver.ViewModels
 {
     public class MainViewModel : BindableBase
     {
-        private ObservableCollection<string> log;  
+        private ObservableCollection<string> log;
         private WebSocketSongReader songReader;
         private SongRecorder songRecorder;
         private string directory;
@@ -114,26 +114,17 @@ namespace GPMDPSaver.ViewModels
 
         private void SongReader_SongChange(object sender, SongChangeEventArgs e)
         {
-           
-                Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
-                    new Action(() =>
-                   {
-                       if (e.OldSongInfo != null && !string.IsNullOrWhiteSpace(e.OldSongInfo.Artist) && !string.IsNullOrWhiteSpace(e.OldSongInfo.Title))
-                       {                           
-                           this.songRecorder.FinishSongRecording();
-                           this.AddLogText(e.OldSongInfo.Artist + " - " + e.OldSongInfo.Title + " Finished");
-                       }
+            if (e.OldSongInfo != null && !string.IsNullOrWhiteSpace(e.OldSongInfo.Artist) && !string.IsNullOrWhiteSpace(e.OldSongInfo.Title))
+            {
+                this.songRecorder.FinishSongRecording();
+                this.AddLogText(e.OldSongInfo.Artist + " - " + e.OldSongInfo.Title + " Finished");
+            }
 
-                       if (e.NewSongInfo != null && !string.IsNullOrWhiteSpace(e.NewSongInfo.Artist) && !string.IsNullOrWhiteSpace(e.NewSongInfo.Title))
-                       {
-                           this.songRecorder.StartSongRecording(e.NewSongInfo);
-                           this.AddLogText(e.NewSongInfo.Artist + " - " + e.NewSongInfo.Title + " Started");
-                       }                            
-                       
-                   }));
-
-
-            
+            if (e.NewSongInfo != null && !string.IsNullOrWhiteSpace(e.NewSongInfo.Artist) && !string.IsNullOrWhiteSpace(e.NewSongInfo.Title))
+            {
+                this.songRecorder.StartSongRecording(e.NewSongInfo);
+                this.AddLogText(e.NewSongInfo.Artist + " - " + e.NewSongInfo.Title + " Started");
+            }
         }
 
         private void ToggleReading()
@@ -142,7 +133,7 @@ namespace GPMDPSaver.ViewModels
             {
                 this.StartStopText = "Stopping...";
                 this.songReader.StopReading();
-                this.songRecorder.FinishSongRecording();
+                this.songRecorder.StopSongRecording();
                 this.StartStopText = "Start";
                 this.Running = false;
             }
@@ -153,12 +144,16 @@ namespace GPMDPSaver.ViewModels
                 this.StartStopText = "Stop";
                 this.Running = true;
             }
-           
+
         }
 
         private void AddLogText(string text)
         {
-            this.log.Add(DateTime.Now.ToLongTimeString() + " - " + text);
+            Application.Current.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background,
+                        new Action(() =>
+                        {
+                            this.log.Add(DateTime.Now.ToLongTimeString() + " - " + text);
+                        }));
         }
     }
 }

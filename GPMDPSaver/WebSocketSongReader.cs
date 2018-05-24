@@ -1,5 +1,6 @@
 ﻿using GPMDPSaver.Models;
 using Newtonsoft.Json.Linq;
+using NLog;
 using System;
 using System.Diagnostics;
 using WebSocketSharp;
@@ -11,6 +12,7 @@ namespace GPMDPSaver
         private bool playing;
         private bool reading;
         private WebSocket webSocket;
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         public WebSocketSongReader()
         {
@@ -69,8 +71,10 @@ namespace GPMDPSaver
             }
         }
 
-        private void PlayStateMessage(JToken payload)
+        private void ProcessPlayStateMessage(JToken payload)
         {
+            logger.Debug("Processing play state message");
+            logger.Debug(payload.ToString());
 
             // Fire off a final song change if we are no longer playing and we are near the end of the current song
             // This is for when the end of a playlist is reached and the song stops playing
@@ -95,29 +99,33 @@ namespace GPMDPSaver
 
         private void ProcessTrackMessage(JToken payload)
         {
+            logger.Debug("Processing track message");
+            logger.Debug(payload.ToString());
+
             string artist = (string)payload["artist"];
             string title = (string)payload["title"];
 
-
-            SongInfo oldSongInfo = new SongInfo()
+            // Only update everything if the artist and title have changed
+            if (artist != this.CurrentSong.Artist || title != this.CurrentSong.Title)
             {
-                Artist = this.CurrentSong.Artist,
-                Title = this.CurrentSong.Title
-            };
+                SongInfo oldSongInfo = new SongInfo()
+                {
+                    Artist = this.CurrentSong.Artist,
+                    Title = this.CurrentSong.Title
+                };
 
-            SongInfo newSongInfo = new SongInfo()
-            {
-                Artist = artist,
-                Title = title
-            };
-
-
-            this.OnSongChange(oldSongInfo, newSongInfo);
-
+                SongInfo newSongInfo = new SongInfo()
+                {
+                    Artist = artist,
+                    Title = title
+                };
 
 
-            this.CurrentSong.Artist = artist;
-            this.CurrentSong.Title = title;
+                this.OnSongChange(oldSongInfo, newSongInfo);
+
+                this.CurrentSong.Artist = artist;
+                this.CurrentSong.Title = title;
+            }
         }
 
         private void WebSocket_OnMessage(object sender, MessageEventArgs e)
@@ -130,8 +138,8 @@ namespace GPMDPSaver
             }
             catch (Exception ex)
             {
-                // There was an error parsing the file so just continue on;
-                // TODO: Add logging
+                // There was an error parsing the message so just continue on;
+                logger.Error(ex, "Error parsing message");
             }
 
             string channel = (string)obj["channel"];
@@ -140,7 +148,7 @@ namespace GPMDPSaver
             switch (channel)
             {
                 case "playState":
-                    this.PlayStateMessage(payload);
+                    this.ProcessPlayStateMessage(payload);
                     break;
 
                 case "track":

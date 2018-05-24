@@ -39,12 +39,18 @@ namespace GPMDPSaver
             }
         }
 
-        public void CancelRecording()
+        public void StopSongRecording()
         {
-            this.recorder.StopRecording();
+            Task.Run(() =>
+                {
+                    this.recorder.StopRecording();
 
-            this.fileWriter.Close();
-            this.fileWriter = null;
+                    if (this.fileWriter != null)
+                    {
+                        this.fileWriter.Close();
+                        this.fileWriter = null;
+                    }
+                });
         }
 
         public void Dispose()
@@ -65,15 +71,13 @@ namespace GPMDPSaver
 
             if (this.currentSong != null)
             {
-                logger.Debug("record.StopRecording() called");
-                this.recorder.StopRecording();
-
-                logger.Debug("fileWriter.Close() called");
                 this.fileWriter.Close();
                 this.fileWriter = null;
 
+
                 logger.Debug("ConvertToMp3() called");
                 this.ConvertToMp3(this.currentSong.Artist, this.currentSong.Title);
+
 
                 this.currentSong = null;
             }
@@ -102,19 +106,14 @@ namespace GPMDPSaver
                    Title = song.Title
                };
 
-               // Wait until the previous recording has finished before starting the next one
-
-               logger.Debug("Waiting until the previous recording has finished");
-
-               while (recording)
+               if (!recording)
                {
-                   Thread.Sleep(10);
-               }
+                   logger.Debug("Calling StartRecording()");
+                   this.recorder.StartRecording();
+                   this.recording = true;
 
-               logger.Debug("Calling StartRecording()");
-               this.recorder.StartRecording();
-               this.recording = true;
-               logger.Debug("Recording started");
+                   logger.Debug("Recording started");
+               }
            });
         }
 
@@ -122,7 +121,7 @@ namespace GPMDPSaver
         {
             Task.Run(() =>
             {
-                string wavFile = this.GenerateWavFileName(artist, title);
+                string wavFile = this.GenerateWavFileName(artist, title);             
 
                 logger.Debug("Converting wav to mp3");
                 Mp3Codec.WaveToMp3(wavFile, artist, title);
@@ -146,9 +145,21 @@ namespace GPMDPSaver
 
         private void Recorder_DataAvailable(object sender, WaveInEventArgs e)
         {
-            if (this.fileWriter != null)
+            if (this.fileWriter != null && this.fileWriter.CanWrite)
             {
-                this.fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+                try
+                {
+                    this.fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, "Error writing data to file");
+
+                }
+            }
+            else
+            {
+                logger.Debug("Unable to write data because fileWriter was not ready");
             }
         }
 
