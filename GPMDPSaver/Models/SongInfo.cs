@@ -1,5 +1,7 @@
 ﻿using Prism.Mvvm;
 using System;
+using System.IO;
+using System.Linq;
 
 namespace GPMDPSaver.Models
 {
@@ -90,6 +92,14 @@ namespace GPMDPSaver.Models
             {
                 totalTime = value;
                 this.OnPropertyChanged(nameof(this.TimeDisplay));
+            }
+        }
+
+        public string GenerateFileName
+        {
+            get
+            {
+                return Path.GetInvalidFileNameChars().Aggregate(this.Artist + " - " + this.Title, (current, c) => current.Replace(c.ToString(), string.Empty));
             }
         }
     }

@@ -12,11 +12,14 @@ namespace GPMDPSaver
     public class SongRecorder : IDisposable
     {
         private SongInfo currentSong;
+        private SongInfo previousSong;
         private string directory;
-        private WaveFileWriter fileWriter;
+        private WaveFileWriter currentFileWriter;
+        private WaveFileWriter previousFileWriter;
         private WasapiLoopbackCapture recorder;
         private bool recording;
         private static Logger logger = LogManager.GetCurrentClassLogger();
+        private bool finishing = false;
 
         public SongRecorder(string directory)
         {
@@ -45,19 +48,24 @@ namespace GPMDPSaver
                 {
                     this.recorder.StopRecording();
 
-                    if (this.fileWriter != null)
+                    if (this.currentFileWriter != null)
                     {
-                        this.fileWriter.Close();
-                        this.fileWriter = null;
+                        this.currentFileWriter.Close();
+                        this.currentFileWriter = null;
+                    }
+                    if(this.previousFileWriter != null)
+                    {
+                        this.previousFileWriter.Close();
+                        this.previousFileWriter = null;
                     }
                 });
         }
 
         public void Dispose()
         {
-            if (this.fileWriter != null)
+            if (this.currentFileWriter != null)
             {
-                this.fileWriter.Dispose();
+                this.currentFileWriter.Dispose();
             }
             if (this.recorder != null)
             {
@@ -71,15 +79,22 @@ namespace GPMDPSaver
 
             if (this.currentSong != null)
             {
-                this.fileWriter.Close();
-                this.fileWriter = null;
+                this.finishing = true;
 
+                this.previousFileWriter = this.currentFileWriter;
+                this.currentFileWriter = null;
+
+                this.previousSong = this.currentSong;
+                this.currentSong = null;
+
+                this.finishing = false;
 
                 logger.Debug("ConvertToMp3() called");
-                this.ConvertToMp3(this.currentSong.Artist, this.currentSong.Title);
+                this.ConvertToMp3(this.previousFileWriter.Filename, this.previousSong);
 
+                this.previousFileWriter.Close();
+                this.previousFileWriter = null;
 
-                this.currentSong = null;
             }
             logger.Debug("FinishSongRecording finished");
         }
@@ -93,12 +108,6 @@ namespace GPMDPSaver
                {
                    System.IO.Directory.CreateDirectory(this.directory);
                }
-
-               logger.Debug("Generating wav file name");
-               string fileName = this.GenerateWavFileName(song.Artist, song.Title);
-
-               logger.Debug("Create file wrtier");
-               this.fileWriter = new WaveFileWriter(fileName, this.recorder.WaveFormat);
 
                this.currentSong = new SongInfo()
                {
@@ -117,50 +126,54 @@ namespace GPMDPSaver
            });
         }
 
-        private void ConvertToMp3(string artist, string title)
+        private void ConvertToMp3(string wavFileName, SongInfo songInfo)
         {
             Task.Run(() =>
             {
-                string wavFile = this.GenerateWavFileName(artist, title);             
+
+                string mp3FileName = Path.Combine(this.directory, songInfo.GenerateFileName + ".mp3");
 
                 logger.Debug("Converting wav to mp3");
-                Mp3Codec.WaveToMp3(wavFile, artist, title);
+                Mp3Codec.WaveToMp3(wavFileName, mp3FileName, songInfo.Artist, songInfo.Title);
 
                 logger.Debug("Deleting wav file");
 
                 // Delete the wav file after doing the conversion
-                File.Delete(wavFile);
+                File.Delete(wavFileName);
 
                 logger.Debug("Wav file deleted");
             });
         }
 
-        private string GenerateWavFileName(string artist, string title)
-        {
-            // Make sure to clean the artist and title for invalid file characters
-            string fileName = Path.GetInvalidFileNameChars().Aggregate(artist + " - " + title, (current, c) => current.Replace(c.ToString(), string.Empty)) + ".wav";
-
-            return Path.Combine(this.Directory, fileName);
-        }
 
         private void Recorder_DataAvailable(object sender, WaveInEventArgs e)
         {
-            if (this.fileWriter != null && this.fileWriter.CanWrite)
-            {
-                try
-                {
-                    this.fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex, "Error writing data to file");
 
-                }
-            }
-            else
+            while(this.finishing)
             {
-                logger.Debug("Unable to write data because fileWriter was not ready");
+                Thread.Sleep(10);
+                
             }
+
+            try
+            {
+                if (this.currentFileWriter == null)
+                {
+                    string fileName = Path.Combine(this.directory, Path.GetRandomFileName() + ".wav");
+
+                    logger.Debug("Creating file writer with name " + fileName);
+
+                    this.currentFileWriter = new WaveFileWriter(fileName, this.recorder.WaveFormat);
+                }
+
+                this.currentFileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error writing data to file");
+
+            }
+
         }
 
         private void Recorder_RecordingStopped(object sender, StoppedEventArgs e)
